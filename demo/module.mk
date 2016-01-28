@@ -7,17 +7,17 @@ FILES:= \
 	# empty line
 
 
-smaaDemo_MODULES:=
-smaaDemo_SRC:=$(dir)/smaaDemo.cpp
+oitDemo_MODULES:=
+oitDemo_SRC:=$(dir)/oitDemo.cpp
 
 
 ifeq ($(USE_GLEW),y)
-smaaDemo_MODULES+=glew
+oitDemo_MODULES+=glew
 endif  # USE_GLEW
 
 
 PROGRAMS+= \
-	smaaDemo \
+	oitDemo \
 	# empty line
 
 SRC_$(d):=$(addprefix $(d)/,$(FILES))
