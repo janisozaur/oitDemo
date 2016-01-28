@@ -52,10 +52,7 @@ THE SOFTWARE.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#ifndef EMSCRIPTEN
 #include <tclap/CmdLine.h>
-#endif  // EMSCRIPTEN
 
 #include "AreaTex.h"
 #include "SearchTex.h"
@@ -264,80 +261,6 @@ void GLAPIENTRY glNamedBufferSubDataEmulated(GLuint buffer, GLintptr offset, GLs
 
 
 }  // extern "C"
-
-
-#ifdef EMSCRIPTEN
-
-
-#include <emscripten.h>
-
-
-// a collection of emscripten hacks to avoid polluting main code with them
-
-
-#define SDL_WINDOW_FULLSCREEN_DESKTOP SDL_WINDOW_FULLSCREEN
-
-
-Uint64 SDL_GetPerformanceFrequency() {
-	return 1000;
-}
-
-
-Uint64 SDL_GetPerformanceCounter() {
-	return SDL_GetTicks();
-}
-
-
-struct SDL_Window {
-};
-
-
-SDL_Window* SDL_CreateWindow(const char* /* title */,
-                             int         /* x */,
-                             int         /* y */,
-                             int         w,
-                             int         h,
-                             Uint32      flags_)
-{
-	Uint32 flags = SDL_DOUBLEBUF;
-
-	if ((flags_ & SDL_WINDOW_RESIZABLE) != 0) {
-		flags |= SDL_RESIZABLE;
-	}
-	if ((flags_ & SDL_WINDOW_FULLSCREEN) != 0) {
-		flags |= SDL_FULLSCREEN;
-	}
-	if ((flags_ & SDL_WINDOW_OPENGL) != 0) {
-		flags |= SDL_OPENGL;
-	}
-
-	SDL_SetVideoMode(w, h, 32, flags);
-
-	return new SDL_Window();
-}
-
-
-SDL_GLContext SDL_GL_CreateContext(SDL_Window* window) {
-	return reinterpret_cast<SDL_GLContext>(window);
-}
-
-
-int SDL_GetNumVideoDisplays() {
-	return 0;
-}
-
-
-int SDL_GetNumDisplayModes(int /* displayIndex */) {
-	return 0;
-}
-
-
-int SDL_GetDisplayMode(int /* displayIndex */, int /* modeIndex */, SDL_DisplayMode* /* mode */) {
-	return 0;
-}
-
-
-#endif  // EMSCRIPTEN
 
 
 #ifdef _MSC_VER
@@ -1255,11 +1178,7 @@ OITDemo::OITDemo()
 , fullscreen(false)
 , window(NULL)
 , context(NULL)
-#ifdef EMSCRIPTEN
-, glES(true)
-#else  // EMSCRIPTEN
 , glES(false)
-#endif  // EMSCRIPTEN
 , glDebug(false)
 , glMajor(3)
 , glMinor(1)
@@ -1723,9 +1642,6 @@ void OITDemo::buildSMAAShaders() {
 }
 
 
-#ifndef EMSCRIPTEN
-
-
 void OITDemo::parseCommandLine(int argc, char *argv[]) {
 	try {
 		TCLAP::CmdLine cmd("SMAA demo", ' ', "1.0");
@@ -1763,9 +1679,6 @@ void OITDemo::parseCommandLine(int argc, char *argv[]) {
 		printf("parseCommandLine: unknown exception\n");
 	}
 }
-
-
-#endif  // EMSCRIPTEN
 
 
 #ifdef USE_GLEW
@@ -1895,8 +1808,6 @@ void OITDemo::initRender() {
 	// TODO: check errors
 	// TODO: other GL attributes as necessary
 	// TODO: use core context (and maybe debug as necessary)
-#ifndef EMSCRIPTEN
-
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, glMajor);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, glMinor);
 	if (glES) {
@@ -1907,8 +1818,6 @@ void OITDemo::initRender() {
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 		}
 	}
-
-#endif  // EMSCRIPTEN
 
 	SDL_DisplayMode mode;
 	memset(&mode, 0, sizeof(mode));
@@ -2259,9 +2168,6 @@ void OITDemo::applyVSync() {
 
 
 void OITDemo::applyFullscreen() {
-#ifndef EMSCRIPTEN
-	// emscripten doesn't allow program-initiated fullscreen without exterme trickery
-
 	if (fullscreen) {
 		// TODO: check return val?
 		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -2270,7 +2176,6 @@ void OITDemo::applyFullscreen() {
 		SDL_SetWindowFullscreen(window, 0);
 		printf("Windowed\n");
 	}
-#endif  // EMSCRIPTEN
 }
 
 
@@ -2649,48 +2554,19 @@ void OITDemo::render() {
 }
 
 
-#ifdef EMSCRIPTEN
-
-
-static void mainLoopWrapper(void *smaaDemo_) {
-	OITDemo *demo = reinterpret_cast<OITDemo *>(smaaDemo_);
-	demo->mainLoopIteration();
-}
-
-
-#endif  // EMSCRIPTEN
-
-
 int main(int argc, char *argv[]) {
 	try {
 	auto demo = std::make_unique<OITDemo>();
 
-#ifdef EMSCRIPTEN
-
-	(void) argc;
-	(void) argv;
-
-#else  // EMSRIPTEN
-
 	demo->parseCommandLine(argc, argv);
-
-#endif  // EMSCRIPTEN
 
 	demo->initRender();
 	demo->createCubes();
 	printHelp();
 
-#ifdef EMSCRIPTEN
-
-	emscripten_set_main_loop_arg(mainLoopWrapper, demo.release(), 0, 1);
-
-#else  // EMSCRIPTEN
-
 	while (demo->shouldKeepGoing()) {
 		demo->mainLoopIteration();
 	}
-
-#endif  // EMSCRIPTEN
 
 	} catch (std::exception &e) {
 		printf("caught std::exception \"%s\"\n", e.what());
