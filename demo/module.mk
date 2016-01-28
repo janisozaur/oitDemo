@@ -11,9 +11,7 @@ oitDemo_MODULES:=
 oitDemo_SRC:=$(dir)/oitDemo.cpp
 
 
-ifeq ($(USE_GLEW),y)
 oitDemo_MODULES+=glew
-endif  # USE_GLEW
 
 
 PROGRAMS+= \
