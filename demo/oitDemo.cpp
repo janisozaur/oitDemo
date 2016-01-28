@@ -914,12 +914,12 @@ void Shader::bind() {
 }
 
 
-class SMAADemo;
+class OITDemo;
 
 
 class Framebuffer {
 	// TODO: need a proper Render object to control the others
-	friend class SMAADemo;
+	friend class OITDemo;
 
 	GLuint fbo;
 	GLuint colorTex;
@@ -1102,7 +1102,7 @@ static const char *smaaQualityLevels[] =
 static const unsigned int maxSMAAQuality = sizeof(smaaQualityLevels) / sizeof(smaaQualityLevels[0]);
 
 
-class SMAADemo {
+class OITDemo {
 	unsigned int windowWidth, windowHeight;
 	unsigned int resizeWidth, resizeHeight;
 	bool vsync;
@@ -1207,16 +1207,16 @@ class SMAADemo {
 
 	std::vector<InstanceData> instances;
 
-	SMAADemo(const SMAADemo &) = delete;
-	SMAADemo &operator=(const SMAADemo &) = delete;
-	SMAADemo(SMAADemo &&) = delete;
-	SMAADemo &operator=(SMAADemo &&) = delete;
+	OITDemo(const OITDemo &) = delete;
+	OITDemo &operator=(const OITDemo &) = delete;
+	OITDemo(OITDemo &&) = delete;
+	OITDemo &operator=(OITDemo &&) = delete;
 
 public:
 
-	SMAADemo();
+	OITDemo();
 
-	~SMAADemo();
+	~OITDemo();
 
 	void parseCommandLine(int argc, char *argv[]);
 
@@ -1254,7 +1254,7 @@ public:
 };
 
 
-SMAADemo::SMAADemo()
+OITDemo::OITDemo()
 : windowWidth(1280)
 , windowHeight(720)
 , vsync(true)
@@ -1316,7 +1316,7 @@ SMAADemo::SMAADemo()
 }
 
 
-SMAADemo::~SMAADemo() {
+OITDemo::~OITDemo() {
 	if (context != NULL) {
 		SDL_GL_DeleteContext(context);
 		context = NULL;
@@ -1409,7 +1409,7 @@ static const uint32_t indices[] =
 #define VBO_OFFSETOF(st, member) reinterpret_cast<GLvoid *>(offsetof(st, member))
 
 
-void SMAADemo::buildCubeShader() {
+void OITDemo::buildCubeShader() {
 	ShaderBuilder s(glES);
 
 	ShaderBuilder vert(s);
@@ -1484,7 +1484,7 @@ void SMAADemo::buildCubeShader() {
 }
 
 
-void SMAADemo::buildImageShader() {
+void OITDemo::buildImageShader() {
 	ShaderBuilder s(glES);
 
 	ShaderBuilder vert(s);
@@ -1514,7 +1514,7 @@ void SMAADemo::buildImageShader() {
 }
 
 
-void SMAADemo::buildFXAAShader() {
+void OITDemo::buildFXAAShader() {
 	glm::vec4 screenSize = glm::vec4(1.0f / float(windowWidth), 1.0f / float(windowHeight), windowWidth, windowHeight);
 
 	ShaderBuilder s(glES);
@@ -1566,7 +1566,7 @@ void SMAADemo::buildFXAAShader() {
 }
 
 
-void SMAADemo::buildSMAAShaders() {
+void OITDemo::buildSMAAShaders() {
 	try {
 		ShaderBuilder s(glES);
 
@@ -1733,7 +1733,7 @@ void SMAADemo::buildSMAAShaders() {
 #ifndef EMSCRIPTEN
 
 
-void SMAADemo::parseCommandLine(int argc, char *argv[]) {
+void OITDemo::parseCommandLine(int argc, char *argv[]) {
 	try {
 		TCLAP::CmdLine cmd("SMAA demo", ' ', "1.0");
 
@@ -1904,7 +1904,7 @@ void GLAPIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id, GLenum se
 #endif  // USE_GLEW
 
 
-void SMAADemo::initRender() {
+void OITDemo::initRender() {
 	assert(window == NULL);
 	assert(context == NULL);
 
@@ -2162,7 +2162,7 @@ void SMAADemo::initRender() {
 }
 
 
-void SMAADemo::setCubeVBO() {
+void OITDemo::setCubeVBO() {
 	if (useVAO) {
 		glBindVertexArray(cubeVAO);
 	} else {
@@ -2196,7 +2196,7 @@ void SMAADemo::setCubeVBO() {
 }
 
 
-void SMAADemo::setFullscreenVBO() {
+void OITDemo::setFullscreenVBO() {
 	if (useVAO) {
 		glBindVertexArray(fullscreenVAO);
 	} else {
@@ -2212,7 +2212,7 @@ void SMAADemo::setFullscreenVBO() {
 }
 
 
-void SMAADemo::createFramebuffers()	{
+void OITDemo::createFramebuffers()	{
 	renderFBO.reset();
 	GLuint fbo = 0;
 	glGenFramebuffers(1, &fbo);
@@ -2275,7 +2275,7 @@ void SMAADemo::createFramebuffers()	{
 }
 
 
-void SMAADemo::applyVSync() {
+void OITDemo::applyVSync() {
 	if (vsync) {
 		// enable vsync, using late swap tearing if possible
 		int retval = SDL_GL_SetSwapInterval(-1);
@@ -2292,7 +2292,7 @@ void SMAADemo::applyVSync() {
 }
 
 
-void SMAADemo::applyFullscreen() {
+void OITDemo::applyFullscreen() {
 #ifndef EMSCRIPTEN
 	// emscripten doesn't allow program-initiated fullscreen without exterme trickery
 
@@ -2308,7 +2308,7 @@ void SMAADemo::applyFullscreen() {
 }
 
 
-void SMAADemo::createCubes() {
+void OITDemo::createCubes() {
 	// cubes on a side is some power of 2
 	const unsigned int cubesSide = pow(2, cubePower);
 
@@ -2352,7 +2352,7 @@ void SMAADemo::createCubes() {
 }
 
 
-void SMAADemo::colorCubes() {
+void OITDemo::colorCubes() {
 	if (colorMode == 0) {
 		for (auto &cube : cubes) {
 			Color col;
@@ -2403,7 +2403,7 @@ static void printHelp() {
 }
 
 
-void SMAADemo::mainLoopIteration() {
+void OITDemo::mainLoopIteration() {
 		// TODO: timing
 		SDL_Event event;
 		memset(&event, 0, sizeof(SDL_Event));
@@ -2555,7 +2555,7 @@ void SMAADemo::mainLoopIteration() {
 }
 
 
-void SMAADemo::render() {
+void OITDemo::render() {
 	if (resizeWidth != windowWidth || resizeHeight != windowHeight) {
 		windowWidth = resizeWidth;
 		windowHeight = resizeHeight;
@@ -2714,7 +2714,7 @@ void SMAADemo::render() {
 
 
 static void mainLoopWrapper(void *smaaDemo_) {
-	SMAADemo *demo = reinterpret_cast<SMAADemo *>(smaaDemo_);
+	OITDemo *demo = reinterpret_cast<OITDemo *>(smaaDemo_);
 	demo->mainLoopIteration();
 }
 
@@ -2724,7 +2724,7 @@ static void mainLoopWrapper(void *smaaDemo_) {
 
 int main(int argc, char *argv[]) {
 	try {
-	auto demo = std::make_unique<SMAADemo>();
+	auto demo = std::make_unique<OITDemo>();
 
 #ifdef EMSCRIPTEN
 
