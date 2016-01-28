@@ -866,33 +866,6 @@ enum DSAMode {
 }  // namespace DSAMode
 
 
-namespace AAMethod {
-
-enum AAMethod {
-	  FXAA
-	, SMAA
-	, LAST = SMAA
-};
-
-
-const char *name(AAMethod m) {
-	switch (m) {
-	case FXAA:
-		return "FXAA";
-		break;
-
-	case SMAA:
-		return "SMAA";
-		break;
-	}
-
-	__builtin_unreachable();
-}
-
-
-}  // namespace AAMethod
-
-
 static const char *smaaDebugModeStr(unsigned int mode) {
 	switch (mode) {
 	case 0:
@@ -959,13 +932,6 @@ public:
 };
 
 
-static const char *fxaaQualityLevels[] =
-{ "10", "15", "20", "29", "39" };
-
-
-static const unsigned int maxFXAAQuality = sizeof(fxaaQualityLevels) / sizeof(fxaaQualityLevels[0]);
-
-
 static const char *smaaQualityLevels[] =
 { "LOW", "MEDIUM", "HIGH", "ULTRA" };
 
@@ -1012,8 +978,6 @@ class OITDemo {
 	std::unique_ptr<Framebuffer> blendFBO;
 
 	bool antialiasing;
-	AAMethod::AAMethod aaMethod;
-	std::unique_ptr<Shader> fxaaShader;
 	std::unique_ptr<Shader> smaaEdgeShader;
 	std::unique_ptr<Shader> smaaBlendWeightShader;
 	std::unique_ptr<Shader> smaaNeighborShader;
@@ -1029,7 +993,6 @@ class OITDemo {
 	unsigned int colorMode;
 	bool rightShift, leftShift;
 	RandomGen random;
-	unsigned int fxaaQuality;
 	unsigned int smaaQuality;
 	bool keepGoing;
 
@@ -1100,8 +1063,6 @@ public:
 
 	void buildImageShader();
 
-	void buildFXAAShader();
-
 	void buildSMAAShaders();
 
 	void createCubes();
@@ -1148,7 +1109,6 @@ OITDemo::OITDemo()
 , nearestSampler(0)
 , cubePower(3)
 , antialiasing(true)
-, aaMethod(AAMethod::SMAA)
 , areaTex(0)
 , searchTex(0)
 , rotateCamera(false)
@@ -1161,7 +1121,6 @@ OITDemo::OITDemo()
 , rightShift(false)
 , leftShift(false)
 , random(1)
-, fxaaQuality(maxFXAAQuality - 1)
 , smaaQuality(maxSMAAQuality - 1)
 , keepGoing(true)
 {
@@ -1377,58 +1336,6 @@ void OITDemo::buildImageShader() {
 }
 
 
-void OITDemo::buildFXAAShader() {
-	glm::vec4 screenSize = glm::vec4(1.0f / float(windowWidth), 1.0f / float(windowHeight), windowWidth, windowHeight);
-
-	ShaderBuilder s(glES);
-
-	s.pushLine("#define FXAA_PC 1");
-
-	if (glES) {
-		s.pushLine("#define FXAA_FAST_PIXEL_OFFSET 0");
-		s.pushLine("#define ivec2 vec2");
-		s.pushLine("#define FXAA_GLSL_120 1");
-	} else {
-		s.pushLine("#define FXAA_GLSL_130 1");
-	}
-
-	// TODO: cache shader based on quality level
-	s.pushLine("#define FXAA_QUALITY_PRESET " + std::string(fxaaQualityLevels[fxaaQuality]));
-
-	ShaderBuilder vert(s);
-	vert.pushVertexAttr("vec2 pos;");
-	vert.pushVertexVarying("vec2 texcoord;");
-	vert.pushLine("void main(void)");
-	vert.pushLine("{");
-	vert.pushLine("    texcoord = pos * 0.5 + 0.5;");
-	vert.pushLine("    gl_Position = vec4(pos, 1.0, 1.0);");
-	vert.pushLine("}");
-
-	VertexShader vShader("fxaa.vert", vert);
-
-	// fragment
-	ShaderBuilder frag(s);
-	if (glES) {
-		frag.pushLine("#define FXAA_GATHER4_ALPHA 0");
-	}
-	frag.pushFile("fxaa3_11.h");
-	frag.pushLine("uniform sampler2D colorTex;");
-	frag.pushLine("uniform vec4 screenSize;");
-	frag.pushFragmentVarying("vec2 texcoord;");
-	frag.pushFragmentOutputDecl();
-	frag.pushLine("void main(void)");
-	frag.pushLine("{");
-	frag.pushLine("    vec4 zero = vec4(0.0, 0.0, 0.0, 0.0);");
-	frag.pushFragmentOutput("FxaaPixelShader(texcoord, zero, colorTex, colorTex, colorTex, screenSize.xy, zero, zero, zero, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, zero);");
-	frag.pushLine("}");
-
-	FragmentShader fShader("fxaa.frag", frag);
-
-	fxaaShader = std::make_unique<Shader>(vShader, fShader);
-	glUniform4fv(fxaaShader->getScreenSizeLocation(), 1, glm::value_ptr(screenSize));
-}
-
-
 void OITDemo::buildSMAAShaders() {
 	try {
 		ShaderBuilder s(glES);
@@ -1588,7 +1495,6 @@ void OITDemo::buildSMAAShaders() {
 	} catch (std::exception &e) {
 		printf("SMAA shader compile failed: \"%s\"\n", e.what());
 		smaaSupported = false;
-		aaMethod = AAMethod::FXAA;
 	}
 }
 
@@ -1868,7 +1774,6 @@ void OITDemo::initRender() {
 	buildCubeShader();
 	buildImageShader();
 	buildSMAAShaders();
-	buildFXAAShader();
 
 	if (useSamplerObjects) {
 		glCreateSamplers(1, &linearSampler);
@@ -2259,7 +2164,7 @@ void OITDemo::mainLoopIteration() {
 					break;
 
 				case SDL_SCANCODE_D:
-					if (antialiasing && aaMethod == AAMethod::SMAA) {
+					if (antialiasing) {
 						if (leftShift || rightShift) {
 							debugMode = (debugMode + 3 - 1) % 3;
 						} else {
@@ -2273,29 +2178,7 @@ void OITDemo::mainLoopIteration() {
 					printHelp();
 					break;
 
-				case SDL_SCANCODE_M:
-					aaMethod = AAMethod::AAMethod((int(aaMethod) + 1) % (int(AAMethod::LAST) + 1));
-					if (aaMethod == AAMethod::SMAA && !smaaSupported) {
-						// Skip to next method
-						aaMethod = AAMethod::AAMethod((int(aaMethod) + 1) % (int(AAMethod::LAST) + 1));
-					}
-					printf("aa method set to %s\n", AAMethod::name(aaMethod));
-					break;
-
 				case SDL_SCANCODE_Q:
-					switch (aaMethod) {
-					case AAMethod::FXAA:
-						if (leftShift || rightShift) {
-							fxaaQuality = fxaaQuality + maxFXAAQuality - 1;
-						} else {
-							fxaaQuality = fxaaQuality + 1;
-						}
-						fxaaQuality = fxaaQuality % maxFXAAQuality;
-						buildFXAAShader();
-						printf("FXAA quality set to %s (%u)\n", fxaaQualityLevels[fxaaQuality], fxaaQuality);
-						break;
-
-					case AAMethod::SMAA:
 						if (leftShift || rightShift) {
 							smaaQuality = smaaQuality + maxSMAAQuality - 1;
 						} else {
@@ -2304,9 +2187,7 @@ void OITDemo::mainLoopIteration() {
 						smaaQuality = smaaQuality % maxSMAAQuality;
 						buildSMAAShaders();
 						printf("SMAA quality set to %s (%u)\n", smaaQualityLevels[smaaQuality], smaaQuality);
-						break;
 
-					}
 					break;
 
 				case SDL_SCANCODE_V:
@@ -2364,7 +2245,6 @@ void OITDemo::render() {
 
 		glm::vec4 screenSize = glm::vec4(1.0f / float(windowWidth), 1.0f / float(windowHeight), windowWidth, windowHeight);
 
-		glUniform4fv(fxaaShader->getScreenSizeLocation(), 1, glm::value_ptr(screenSize));
 		glUniform4fv(smaaEdgeShader->getScreenSizeLocation(), 1, glm::value_ptr(screenSize));
 		glUniform4fv(smaaBlendWeightShader->getScreenSizeLocation(), 1, glm::value_ptr(screenSize));
 		glUniform4fv(smaaNeighborShader->getScreenSizeLocation(), 1, glm::value_ptr(screenSize));
@@ -2445,22 +2325,14 @@ void OITDemo::render() {
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 
-		switch (aaMethod) {
-		case AAMethod::FXAA:
-			builtinFBO->bind();
-			fxaaShader->bind();
-			glDrawArrays(GL_TRIANGLES, 0, 3);
-			break;
-
-		case AAMethod::SMAA:
 			smaaEdgeShader->bind();
 
 			if (debugMode == 1) {
 				// detect edges only
 				builtinFBO->bind();
 				glClear(GL_COLOR_BUFFER_BIT);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-				break;
+
+				goto done;
 			} else {
 				edgesFBO->bind();
 				glClear(GL_COLOR_BUFFER_BIT);
@@ -2472,8 +2344,8 @@ void OITDemo::render() {
 				// show blending weights
 				builtinFBO->bind();
 				glClear(GL_COLOR_BUFFER_BIT);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-				break;
+
+				goto done;
 			} else {
 				blendFBO->bind();
 				glClear(GL_COLOR_BUFFER_BIT);
@@ -2484,9 +2356,9 @@ void OITDemo::render() {
 			smaaNeighborShader->bind();
 			builtinFBO->bind();
 			glClear(GL_COLOR_BUFFER_BIT);
+
+		done:
 			glDrawArrays(GL_TRIANGLES, 0, 3);
-			break;
-		}
 
 	} else {
 		renderFBO->blitTo(*builtinFBO);
