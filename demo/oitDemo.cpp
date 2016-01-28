@@ -32,9 +32,6 @@ THE SOFTWARE.
 #include <string>
 #include <vector>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 #include <SDL.h>
 
 
@@ -1161,9 +1158,6 @@ class OITDemo {
 	unsigned int fxaaQuality;
 	unsigned int smaaQuality;
 	bool keepGoing;
-	// 0 for cubes
-	// 1.. for images
-	unsigned int activeScene;
 
 
 	struct Image {
@@ -1300,7 +1294,6 @@ OITDemo::OITDemo()
 , fxaaQuality(maxFXAAQuality - 1)
 , smaaQuality(maxSMAAQuality - 1)
 , keepGoing(true)
-, activeScene(0)
 {
 	resizeWidth = windowWidth;
 	resizeHeight = windowHeight;
@@ -1745,7 +1738,6 @@ void OITDemo::parseCommandLine(int argc, char *argv[]) {
 		TCLAP::ValueArg<unsigned int> glMinorSwitch("", "glminor", "OpenGL minor version", false, glMinor, "version", cmd);
 		TCLAP::ValueArg<unsigned int> windowWidthSwitch("", "width", "Window width", false, windowWidth, "width", cmd);
 		TCLAP::ValueArg<unsigned int> windowHeightSwitch("", "height", "Window height", false, windowHeight, "height", cmd);
-		TCLAP::UnlabeledMultiArg<std::string> imagesArg("images", "image files", false, "image file", cmd, true, nullptr);
 
 		cmd.parse(argc, argv);
 
@@ -1764,15 +1756,6 @@ void OITDemo::parseCommandLine(int argc, char *argv[]) {
 		windowHeight = windowHeightSwitch.getValue();
 		resizeWidth = windowWidth;
 		resizeHeight = windowHeight;
-
-		const auto &imageFiles = imagesArg.getValue();
-		images.reserve(imageFiles.size());
-		for (const auto &filename : imageFiles) {
-			images.push_back(Image());
-			auto &img = images.back();
-			img.tex = 0;
-			img.filename = filename;
-		}
 
 	} catch (TCLAP::ArgException &e) {
 		printf("parseCommandLine exception: %s for arg %s\n", e.error().c_str(), e.argId().c_str());
@@ -2142,23 +2125,6 @@ void OITDemo::initRender() {
 	builtinFBO->height = windowHeight;
 
 	createFramebuffers();
-
-	for (auto &img : images) {
-		const auto filename = img.filename.c_str();
-		int width = 0, height = 0;
-		unsigned char *imageData = stbi_load(filename, &width, &height, NULL, 3);
-		printf(" %p  %dx%d\n", imageData, width, height);
-
-		glCreateTextures(GL_TEXTURE_2D, 1, &img.tex);
-		glTextureStorage2D(img.tex, 1, GL_RGB8, width, height);
-		glTextureParameteri(img.tex, GL_TEXTURE_MAX_LEVEL, 0);
-		glTextureSubImage2D(img.tex, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, imageData);
-
-		stbi_image_free(imageData);
-	}
-
-	// default scene to last image or cubes if none
-	activeScene = images.size();
 }
 
 
@@ -2408,7 +2374,6 @@ void OITDemo::mainLoopIteration() {
 		SDL_Event event;
 		memset(&event, 0, sizeof(SDL_Event));
 		while (SDL_PollEvent(&event)) {
-			int sceneIncrement = 1;
 			switch (event.type) {
 			case SDL_QUIT:
 				keepGoing = false;
@@ -2507,17 +2472,6 @@ void OITDemo::mainLoopIteration() {
 					applyFullscreen();
 					break;
 
-				case SDL_SCANCODE_LEFT:
-					sceneIncrement = -1;
-					// fallthrough
-				case SDL_SCANCODE_RIGHT:
-					{
-						// all images + cubes scene
-						unsigned int numScenes = images.size() + 1;
-						activeScene = (activeScene + sceneIncrement + numScenes) % numScenes;
-					}
-					break;
-
 				default:
 					break;
 				}
@@ -2588,7 +2542,6 @@ void OITDemo::render() {
 	renderFBO->bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (activeScene == 0) {
 		if (rotateCamera) {
 			rotationTime += elapsed;
 
@@ -2638,20 +2591,6 @@ void OITDemo::render() {
 			}
 
 		}
-	} else {
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-
-		assert(activeScene - 1 < images.size());
-		const auto &image = images[activeScene - 1];
-		imageShader->bind();
-		glBindTextureUnit(TEXUNIT_COLOR, image.tex);
-		glBindSampler(TEXUNIT_COLOR, nearestSampler);
-		setFullscreenVBO();
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glBindTextureUnit(TEXUNIT_COLOR, renderFBO->colorTex);
-		glBindSampler(TEXUNIT_COLOR, linearSampler);
-	}
 
 	setFullscreenVBO();
 
