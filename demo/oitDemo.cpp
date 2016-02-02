@@ -491,6 +491,8 @@ class VertexShader {
 
 public:
 
+	explicit VertexShader(const std::string &filename);
+
 	VertexShader(const std::string &name, const ShaderBuilder &builder);
 
 	~VertexShader();
@@ -512,6 +514,8 @@ class FragmentShader {
 	friend class Shader;
 
 public:
+
+	FragmentShader(const std::string &filename);
 
 	FragmentShader(const std::string &name, const ShaderBuilder &builder);
 
@@ -669,6 +673,15 @@ public:
 };
 
 
+VertexShader::VertexShader(const std::string &filename)
+: shader(0)
+{
+	auto contents = processShaderIncludes(readFile(filename));
+
+	shader = createShader(GL_VERTEX_SHADER, filename, contents);
+}
+
+
 VertexShader::VertexShader(const std::string &name, const ShaderBuilder &builder)
 : shader(0)
 {
@@ -681,6 +694,15 @@ VertexShader::~VertexShader() {
 
 	glDeleteShader(shader);
 	shader = 0;
+}
+
+
+FragmentShader::FragmentShader(const std::string &filename)
+: shader(0)
+{
+	auto contents = processShaderIncludes(readFile(filename));
+
+	shader = createShader(GL_FRAGMENT_SHADER, filename, contents);
 }
 
 
@@ -1232,76 +1254,13 @@ static const uint32_t indices[] =
 
 
 void OITDemo::buildCubeShader() {
-	ShaderBuilder s(glES);
+	VertexShader vShader("cube.vert");
 
-	ShaderBuilder vert(s);
-	vert.pushLine("uniform mat4 viewProj;");
-	vert.pushVertexAttr("vec3 rotationQuat;");
-	vert.pushVertexAttr("vec3 cubePos;");
-	vert.pushVertexAttr("vec3 color;");
-	vert.pushVertexAttr("vec3 position;");
-	vert.pushVertexVarying("vec3 colorFrag;");
-	vert.pushLine("void main(void)");
-	vert.pushLine("{");
-	vert.pushLine("    // our quaternions are normalized and have w > 0.0");
-	vert.pushLine("    float qw = sqrt(1.0 - dot(rotationQuat, rotationQuat));");
-	vert.pushLine("    // rotate");
-	vert.pushLine("    // this is quaternion multiplication from glm");
-	vert.pushLine("    vec3 v = position;");
-	vert.pushLine("    vec3 uv = cross(rotationQuat, v);");
-	vert.pushLine("    vec3 uuv = cross(rotationQuat, uv);");
-	vert.pushLine("    uv *= (2.0 * qw);");
-	vert.pushLine("    uuv *= 2.0;");
-	vert.pushLine("    vec3 rotatedPos = v + uv + uuv;");
-	vert.pushLine("");
-	vert.pushLine("    gl_Position = viewProj * vec4(rotatedPos + cubePos, 1.0);");
-	vert.pushLine("    colorFrag = color;");
-	vert.pushLine("}");
-
-	VertexShader vShader("cube.vert", vert);
-
-	// fragment
-	ShaderBuilder frag(s);
-
-	frag.pushFragmentVarying("vec3 colorFrag;");
-	frag.pushFragmentOutputDecl();
-	frag.pushLine("void main(void)");
-	frag.pushLine("{");
-	frag.pushLine("    vec4 temp;");
-	frag.pushLine("    temp.xyz = colorFrag;");
-	frag.pushLine("    temp.w = 0.5;");
-	frag.pushFragmentOutput("temp;");
-	frag.pushLine("}");
-
-	FragmentShader fShader("cube.frag", frag);
+	FragmentShader fShader("cube.frag");
 
 	cubeInstanceShader = std::make_unique<Shader>(vShader, fShader);
 
-	ShaderBuilder vert2(s);
-	vert2.pushLine("uniform mat4 viewProj;");
-	vert2.pushLine("uniform vec3 rotationQuat;");
-	vert2.pushLine("uniform vec3 cubePos;");
-	vert2.pushLine("uniform vec3 color;");
-	vert2.pushVertexAttr("vec3 position;");
-	vert2.pushVertexVarying("vec3 colorFrag;");
-	vert2.pushLine("void main(void)");
-	vert2.pushLine("{");
-	vert2.pushLine("    // our quaternions are normalized and have w > 0.0");
-	vert2.pushLine("    float qw = sqrt(1.0 - dot(rotationQuat, rotationQuat));");
-	vert2.pushLine("    // rotate");
-	vert2.pushLine("    // this is quaternion multiplication from glm");
-	vert2.pushLine("    vec3 v = position;");
-	vert2.pushLine("    vec3 uv = cross(rotationQuat, v);");
-	vert2.pushLine("    vec3 uuv = cross(rotationQuat, uv);");
-	vert2.pushLine("    uv *= (2.0 * qw);");
-	vert2.pushLine("    uuv *= 2.0;");
-	vert2.pushLine("    vec3 rotatedPos = v + uv + uuv;");
-	vert2.pushLine("");
-	vert2.pushLine("    gl_Position = viewProj * vec4(rotatedPos + cubePos, 1.0);");
-	vert2.pushLine("    colorFrag = color;");
-	vert2.pushLine("}");
-
-	VertexShader vShader2("cube2.vert", vert2);
+	VertexShader vShader2("cube2.vert");
 	cubeShader = std::make_unique<Shader>(vShader2, fShader);
 }
 
