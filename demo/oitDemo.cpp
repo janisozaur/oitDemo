@@ -1269,7 +1269,7 @@ void OITDemo::buildCubeShader() {
 	frag.pushLine("{");
 	frag.pushLine("    vec4 temp;");
 	frag.pushLine("    temp.xyz = colorFrag;");
-	frag.pushLine("    temp.w = dot(colorFrag, vec3(0.299, 0.587, 0.114));");
+	frag.pushLine("    temp.w = 0.5;");
 	frag.pushFragmentOutput("temp;");
 	frag.pushLine("}");
 
@@ -2258,16 +2258,19 @@ void OITDemo::render() {
 	// TODO: reset all relevant state in case some 3rd-party program fucked them up
 
 	glViewport(0, 0, windowWidth, windowHeight);
-	glDepthMask(GL_TRUE);
-	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	builtinFBO->bind();
+	glDepthMask(GL_TRUE);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	renderFBO->bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDepthMask(GL_FALSE);
 
 		if (rotateCamera) {
 			rotationTime += elapsed;
@@ -2324,6 +2327,7 @@ void OITDemo::render() {
 	if (antialiasing) {
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
+		glDisable(GL_BLEND);
 
 			smaaEdgeShader->bind();
 
