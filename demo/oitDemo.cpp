@@ -980,7 +980,6 @@ class OITDemo {
 
 	std::unique_ptr<Shader> cubeInstanceShader;
 	std::unique_ptr<Shader> cubeShader;
-	std::unique_ptr<Shader> imageShader;
 
 	// TODO: create helper classes for these
 	GLuint cubeVAO;
@@ -1082,8 +1081,6 @@ public:
 	void applyFullscreen();
 
 	void buildCubeShader();
-
-	void buildImageShader();
 
 	void buildSMAAShaders();
 
@@ -1262,36 +1259,6 @@ void OITDemo::buildCubeShader() {
 
 	VertexShader vShader2("cube2.vert");
 	cubeShader = std::make_unique<Shader>(vShader2, fShader);
-}
-
-
-void OITDemo::buildImageShader() {
-	ShaderBuilder s(glES);
-
-	ShaderBuilder vert(s);
-	vert.pushVertexAttr("vec2 pos;");
-	vert.pushVertexVarying("vec2 texcoord;");
-	vert.pushLine("void main(void)");
-	vert.pushLine("{");
-	vert.pushLine("    texcoord = pos * vec2(0.5, -0.5) + vec2(0.5, 0.5);");
-	vert.pushLine("    gl_Position = vec4(pos, 1.0, 1.0);");
-	vert.pushLine("}");
-
-	VertexShader vShader("image.vert", vert);
-
-	// fragment
-	ShaderBuilder frag(s);
-	frag.pushLine("uniform sampler2D colorTex;");
-	frag.pushFragmentVarying("vec2 texcoord;");
-	frag.pushFragmentOutputDecl();
-	frag.pushLine("void main(void)");
-	frag.pushLine("{");
-	frag.pushFragmentOutput("texture2D(colorTex, texcoord);");
-	frag.pushLine("}");
-
-	FragmentShader fShader("image.frag", frag);
-
-	imageShader = std::make_unique<Shader>(vShader, fShader);
 }
 
 
@@ -1731,7 +1698,6 @@ void OITDemo::initRender() {
 	SDL_GL_SwapWindow(window);
 
 	buildCubeShader();
-	buildImageShader();
 	buildSMAAShaders();
 
 	if (useSamplerObjects) {
