@@ -20,20 +20,33 @@ void main(void)
 	ivec2 coord = ivec2(gl_FragCoord.xy);
 	uint idx = imageLoad(counterImage, coord).x;
 
-	OITData nearest;
-	nearest.color = 0u;
-	nearest.depth = 1.0f;
-	nearest.prev = 0;
+	const uint maxCount = 32u;
 
-	while (idx != 0) {
+	uint count = 0u;
+	OITData sorted[maxCount];
+
+	while (idx != 0 && count < maxCount) {
 		OITData candidate = data[idx];
-		if (candidate.depth < nearest.depth) {
-			nearest = candidate;
-		}
+
+		sorted[count] = candidate;
+		count++;
+
 		idx = candidate.prev;
 	}
 
-	uint n = nearest.color;
+	if (count > 0) {
+		// insertion sort
+		for (uint i = 1; i < count; i++) {
+			int j = 1;
+			while (j > 0 && sorted[j - 1].depth > sorted[j].depth) {
+				OITData temp = sorted[j];
+				sorted[j] = sorted[j - 1];
+				sorted[j - 1] = temp;
+				j--;
+			}
+		}
+
+	uint n = sorted[0].color;
 	uvec4 temp;
 	temp.r = n % 256u;
 	n = n / 256u;
@@ -47,4 +60,7 @@ void main(void)
 	temp.a = n;
 
 	colorOut = vec4(temp) / vec4(255.0);
+	} else {
+		colorOut = vec4(0.0, 0.0, 0.0, 1.0);
+	}
 }
