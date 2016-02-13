@@ -1005,6 +1005,8 @@ class OITDemo {
 	GLuint areaTex;
 	GLuint searchTex;
 
+	GLuint counterImage;
+
 	bool rotateCamera;
 	float cameraRotation;
 	uint64_t lastTime;
@@ -1130,6 +1132,7 @@ OITDemo::OITDemo()
 , antialiasing(true)
 , areaTex(0)
 , searchTex(0)
+, counterImage(0)
 , rotateCamera(false)
 , cameraRotation(0.0f)
 , lastTime(0)
@@ -1919,6 +1922,16 @@ void OITDemo::createFramebuffers()	{
 	glTextureParameteri(tex, GL_TEXTURE_MAX_LEVEL, 0);
 	glBindSampler(TEXUNIT_BLEND, linearSampler);
 	glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, tex, 0);
+
+	// oit accumulation textures
+	if (counterImage != 0) {
+		glDeleteTextures(1, &counterImage);
+		counterImage = 0;
+	}
+	glCreateTextures(GL_TEXTURE_2D, 1, &tex);
+	counterImage = tex;
+	glTextureStorage2D(tex, 1, GL_R32UI, windowWidth, windowHeight);
+	glTextureParameteri(tex, GL_TEXTURE_MAX_LEVEL, 0);
 }
 
 
@@ -2197,6 +2210,8 @@ void OITDemo::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDepthMask(GL_FALSE);
 
+	glClearTexImage(counterImage, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+
 		if (rotateCamera) {
 			rotationTime += elapsed;
 
@@ -2212,6 +2227,8 @@ void OITDemo::render() {
 			cubeInstanceShader->bind();
 			GLint viewProjLoc = cubeInstanceShader->getUniformLocation("viewProj");
 			glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
+
+			glBindImageTexture(0, counterImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 
 			instances.clear();
 			instances.reserve(cubes.size());
