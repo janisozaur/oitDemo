@@ -1007,6 +1007,7 @@ class OITDemo {
 	GLuint searchTex;
 
 	GLuint counterImage;
+	GLuint atomicCounterBuf;
 
 	bool rotateCamera;
 	float cameraRotation;
@@ -1134,6 +1135,7 @@ OITDemo::OITDemo()
 , areaTex(0)
 , searchTex(0)
 , counterImage(0)
+, atomicCounterBuf(0)
 , rotateCamera(false)
 , cameraRotation(0.0f)
 , lastTime(0)
@@ -1813,6 +1815,12 @@ void OITDemo::initRender() {
 	builtinFBO->width = windowWidth;
 	builtinFBO->height = windowHeight;
 
+	glCreateBuffers(1, &atomicCounterBuf);
+	assert(atomicCounterBuf != 0);
+	uint32_t zero = 0;
+	glNamedBufferData(atomicCounterBuf, 4, &zero, GL_DYNAMIC_COPY);
+	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, atomicCounterBuf);
+
 	createFramebuffers();
 }
 
@@ -2214,6 +2222,7 @@ void OITDemo::render() {
 	glDepthMask(GL_FALSE);
 
 	glClearTexImage(counterImage, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+	glClearNamedBufferData(atomicCounterBuf, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
 
 		if (rotateCamera) {
 			rotationTime += elapsed;
@@ -2268,6 +2277,10 @@ void OITDemo::render() {
 		}
 
 	setFullscreenVBO();
+
+	GLuint *temp = static_cast<GLuint *>(glMapBuffer(GL_ATOMIC_COUNTER_BUFFER, GL_READ_ONLY));
+	printf("atomic buffer contents: %u\n", *temp);
+	glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
 
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
