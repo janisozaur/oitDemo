@@ -49,4 +49,6 @@ vec4 flipTexCoord(in vec4 tc) {
 
 struct OITData {
 	uint color;
+	float depth;
+	uint prev;
 };

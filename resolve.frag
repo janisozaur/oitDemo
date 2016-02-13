@@ -20,8 +20,20 @@ void main(void)
 	ivec2 coord = ivec2(gl_FragCoord.xy);
 	uint idx = imageLoad(counterImage, coord).x;
 
-	if (idx != 0) {
-	uint n = data[idx].color;
+	OITData nearest;
+	nearest.color = 0u;
+	nearest.depth = 1.0f;
+	nearest.prev = 0;
+
+	while (idx != 0) {
+		OITData candidate = data[idx];
+		if (candidate.depth < nearest.depth) {
+			nearest = candidate;
+		}
+		idx = candidate.prev;
+	}
+
+	uint n = nearest.color;
 	uvec4 temp;
 	temp.r = n % 256u;
 	n = n / 256u;
@@ -35,7 +47,4 @@ void main(void)
 	temp.a = n;
 
 	colorOut = vec4(temp) / vec4(255.0);
-	} else {
-		colorOut = vec4(0.0, 0.0, 0.0, 1.0);
-	}
 }

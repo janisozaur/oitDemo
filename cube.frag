@@ -26,4 +26,6 @@ void main(void)
 	uint alpha = uint(0.5 * 255);
 	uint color = (alpha << 24) | (colorTemp.r << 16) | (colorTemp.g << 8) | colorTemp.b;
 	data[idx].color = color;
+	data[idx].depth = gl_FragCoord.z;
+	data[idx].prev = prev;
 }

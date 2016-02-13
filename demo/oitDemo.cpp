@@ -1825,7 +1825,7 @@ void OITDemo::initRender() {
 
 	glCreateBuffers(1, &accumulationBuf);
 	assert(accumulationBuf != 0);
-	glNamedBufferData(accumulationBuf, 16 * 1024 * 1024, NULL, GL_DYNAMIC_COPY);
+	glNamedBufferData(accumulationBuf, 128 * 1024 * 1024, NULL, GL_DYNAMIC_COPY);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, accumulationBuf);
 
 	createFramebuffers();
