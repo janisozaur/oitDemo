@@ -46,7 +46,11 @@ void main(void)
 			}
 		}
 
-	uint n = sorted[0].color;
+		colorOut = vec4(0.0, 0.0, 0.0, 0.0);
+
+		for (uint i = 0; i < count; i++) {
+			uint n = sorted[i].color;
+
 	uvec4 temp;
 	temp.r = n % 256u;
 	n = n / 256u;
@@ -59,7 +63,10 @@ void main(void)
 
 	temp.a = n;
 
-	colorOut = vec4(temp) / vec4(255.0);
+			vec4 tempF = vec4(temp) / vec4(255.0);
+
+			colorOut = mix(colorOut, tempF, tempF.a);
+		}
 	} else {
 		colorOut = vec4(0.0, 0.0, 0.0, 1.0);
 	}
