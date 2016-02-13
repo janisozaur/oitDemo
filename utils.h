@@ -44,3 +44,9 @@ vec2 flipTexCoord(in vec2 tc) {
 vec4 flipTexCoord(in vec4 tc) {
     return tc * vec4(1.0, -1.0, 1.0, -1.0) + vec4(0.0, 1.0, 0.0, 1.0);
 }
+
+
+
+struct OITData {
+	uint color;
+};

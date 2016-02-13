@@ -1,9 +1,15 @@
-#version 420
+#version 430
 #extension GL_ARB_shader_image_load_store : require
+
+
+#include "utils.h"
 
 
 layout (early_fragment_tests) in;
 layout (r32ui) uniform uimage2D counterImage;
+layout (std430, binding = 0) buffer oitData {
+	OITData data[];
+};
 
 
 out  vec4 colorOut;
@@ -12,17 +18,24 @@ out  vec4 colorOut;
 void main(void)
 {
 	ivec2 coord = ivec2(gl_FragCoord.xy);
-	uint n = imageLoad(counterImage, coord).x;
+	uint idx = imageLoad(counterImage, coord).x;
 
-	uvec3 temp;
-	temp.x = n % 256u;
+	if (idx != 0) {
+	uint n = data[idx].color;
+	uvec4 temp;
+	temp.r = n % 256u;
 	n = n / 256u;
 
-	temp.y = n % 256u;
+	temp.g = n % 256u;
 	n = n / 256u;
 
-	temp.x = n % 256u;
+	temp.b = n % 256u;
 	n = n / 256u;
 
-	colorOut = vec4(vec3(temp) / vec3(255.0), 1.0);
+	temp.a = n;
+
+	colorOut = vec4(temp) / vec4(255.0);
+	} else {
+		colorOut = vec4(0.0, 0.0, 0.0, 1.0);
+	}
 }

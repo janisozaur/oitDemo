@@ -1008,6 +1008,7 @@ class OITDemo {
 
 	GLuint counterImage;
 	GLuint atomicCounterBuf;
+	GLuint accumulationBuf;
 
 	bool rotateCamera;
 	float cameraRotation;
@@ -1136,6 +1137,7 @@ OITDemo::OITDemo()
 , searchTex(0)
 , counterImage(0)
 , atomicCounterBuf(0)
+, accumulationBuf(0)
 , rotateCamera(false)
 , cameraRotation(0.0f)
 , lastTime(0)
@@ -1820,6 +1822,11 @@ void OITDemo::initRender() {
 	uint32_t zero = 0;
 	glNamedBufferData(atomicCounterBuf, 4, &zero, GL_DYNAMIC_COPY);
 	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, atomicCounterBuf);
+
+	glCreateBuffers(1, &accumulationBuf);
+	assert(accumulationBuf != 0);
+	glNamedBufferData(accumulationBuf, 16 * 1024 * 1024, NULL, GL_DYNAMIC_COPY);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, accumulationBuf);
 
 	createFramebuffers();
 }
