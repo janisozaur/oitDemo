@@ -980,6 +980,7 @@ class OITDemo {
 
 	std::unique_ptr<Shader> cubeInstanceShader;
 	std::unique_ptr<Shader> cubeShader;
+	std::unique_ptr<Shader> resolveShader;
 
 	// TODO: create helper classes for these
 	GLuint cubeVAO;
@@ -1262,6 +1263,10 @@ void OITDemo::buildCubeShader() {
 
 	VertexShader vShader2("cube2.vert");
 	cubeShader = std::make_unique<Shader>(vShader2, fShader);
+
+	VertexShader resolveVert("resolve.vert");
+	FragmentShader resolveFrag("resolve.frag");
+	resolveShader = std::make_unique<Shader>(resolveVert, resolveFrag);
 }
 
 
@@ -2198,8 +2203,6 @@ void OITDemo::render() {
 	glViewport(0, 0, windowWidth, windowHeight);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	builtinFBO->bind();
 	glDepthMask(GL_TRUE);
@@ -2266,11 +2269,15 @@ void OITDemo::render() {
 
 	setFullscreenVBO();
 
-	if (antialiasing) {
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 		glDisable(GL_BLEND);
 
+		resolveShader->bind();
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	if (antialiasing) {
 			smaaEdgeShader->bind();
 
 			if (debugMode == 1) {
