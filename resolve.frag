@@ -14,5 +14,15 @@ void main(void)
 	ivec2 coord = ivec2(gl_FragCoord.xy);
 	uint n = imageLoad(counterImage, coord).x;
 
-	colorOut = vec4(vec3(float(n) / 32.0), 1.0);
+	uvec3 temp;
+	temp.x = n % 256u;
+	n = n / 256u;
+
+	temp.y = n % 256u;
+	n = n / 256u;
+
+	temp.x = n % 256u;
+	n = n / 256u;
+
+	colorOut = vec4(vec3(temp) / vec3(255.0), 1.0);
 }

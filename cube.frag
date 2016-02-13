@@ -12,8 +12,8 @@ in vec3 colorFrag;
 
 void main(void)
 {
-	ivec2 coord = ivec2(gl_FragCoord.xy);
-	imageAtomicAdd(counterImage, coord, 1u);
+	uint idx = atomicCounterIncrement(counter) + 1;
 
-	atomicCounterIncrement(counter);
+	ivec2 coord = ivec2(gl_FragCoord.xy);
+	imageAtomicExchange(counterImage, coord, idx);
 }
