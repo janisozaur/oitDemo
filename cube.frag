@@ -6,9 +6,9 @@
 
 
 layout (early_fragment_tests) in;
-layout (r32ui) uniform uimage2D counterImage;
+coherent layout (r32ui) uniform uimage2D counterImage;
 layout (offset = 0, binding = 0) uniform atomic_uint counter;
-layout (std430, binding = 0) buffer oitData {
+coherent layout (std430, binding = 0) buffer oitData {
 	OITData data[];
 };
 

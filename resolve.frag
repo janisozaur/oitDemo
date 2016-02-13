@@ -23,33 +23,39 @@ void main(void)
 	const uint maxCount = 32u;
 
 	uint count = 0u;
+	// farthest (largest depth value) first
 	OITData sorted[maxCount];
 
-	while (idx != 0 && count < maxCount) {
+	while (idx != 0) {
 		OITData candidate = data[idx];
 
-		sorted[count] = candidate;
+		int insertPoint = int(count);
+		while (insertPoint > 0) {
+			if (sorted[insertPoint - 1].depth < candidate.depth) {
+				break;
+			}
+
+			sorted[insertPoint] = sorted[insertPoint - 1];
+
+			insertPoint--;
+		}
+
+		if (insertPoint < maxCount) {
+		sorted[insertPoint] = candidate;
+		}
+
+		if (count < maxCount) {
 		count++;
+		}
 
 		idx = candidate.prev;
 	}
 
 	if (count > 0) {
-		// insertion sort
-		for (uint i = 1; i < count; i++) {
-			int j = 1;
-			while (j > 0 && sorted[j - 1].depth > sorted[j].depth) {
-				OITData temp = sorted[j];
-				sorted[j] = sorted[j - 1];
-				sorted[j - 1] = temp;
-				j--;
-			}
-		}
-
 		colorOut = vec4(0.0, 0.0, 0.0, 0.0);
 
 		for (uint i = 0; i < count; i++) {
-			uint n = sorted[i].color;
+			uint n = sorted[count - 1 - i].color;
 
 	uvec4 temp;
 	temp.r = n % 256u;

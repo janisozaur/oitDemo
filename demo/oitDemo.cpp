@@ -2289,6 +2289,8 @@ void OITDemo::render() {
 	printf("atomic buffer contents: %u\n", *temp);
 	glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
 
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 		glDisable(GL_BLEND);
