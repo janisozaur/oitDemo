@@ -1,5 +1,7 @@
-#version 430
+#version 400
+#extension GL_ARB_explicit_attrib_location : require
 #extension GL_ARB_shader_image_load_store : require
+#extension GL_ARB_shader_storage_buffer_object : require
 
 
 #include "utils.h"
