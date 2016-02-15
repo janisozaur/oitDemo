@@ -21,11 +21,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\demo\smaaDemo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\foreign\glew\src\glew.c">
       <Filter>Source Files\glew</Filter>
+    </ClCompile>
+    <ClCompile Include="..\demo\oitDemo.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

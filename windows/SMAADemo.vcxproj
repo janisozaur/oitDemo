@@ -86,7 +86,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\demo\smaaDemo.cpp" />
+    <ClCompile Include="..\demo\oitDemo.cpp" />
     <ClCompile Include="..\foreign\glew\src\glew.c" />
   </ItemGroup>
   <ItemGroup>
