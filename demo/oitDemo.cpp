@@ -2251,6 +2251,9 @@ void OITDemo::render() {
 			GLint viewProjLoc = cubeInstanceShader->getUniformLocation("viewProj");
 			glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
 
+			GLint bufSizeLoc = cubeInstanceShader->getUniformLocation("bufSize");
+			glUniform1ui(bufSizeLoc, oitBufferSize);
+
 			glBindImageTexture(0, counterImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 
 			instances.clear();
@@ -2267,6 +2270,9 @@ void OITDemo::render() {
 			cubeShader->bind();
 			GLint viewProjLoc = cubeShader->getUniformLocation("viewProj");
 			glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
+
+			GLint bufSizeLoc = cubeShader->getUniformLocation("bufSize");
+			glUniform1ui(bufSizeLoc, oitBufferSize);
 
 			glBindImageTexture(0, counterImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 

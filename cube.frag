@@ -14,6 +14,7 @@ layout (offset = 0, binding = 0) uniform atomic_uint counter;
 coherent layout (std430, binding = 0) buffer oitData {
 	OITData data[];
 };
+uniform uint bufSize;
 
 
 in vec3 colorFrag;
@@ -23,6 +24,7 @@ void main(void)
 {
 	uint idx = atomicCounterIncrement(counter) + 1;
 
+	if (idx < bufSize) {
 	ivec2 coord = ivec2(gl_FragCoord.xy);
 	uint prev = imageAtomicExchange(counterImage, coord, idx);
 	uvec3 colorTemp = uvec3(colorFrag * 255.0);
@@ -31,4 +33,5 @@ void main(void)
 	data[idx].color = color;
 	data[idx].depth = gl_FragCoord.z;
 	data[idx].prev = prev;
+	}
 }
