@@ -2268,6 +2268,8 @@ void OITDemo::render() {
 			GLint viewProjLoc = cubeShader->getUniformLocation("viewProj");
 			glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
 
+			glBindImageTexture(0, counterImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+
 			GLint cubePosLoc = cubeShader->getUniformLocation("cubePos");
 			GLint rotationQuatLoc = cubeShader->getUniformLocation("rotationQuat");
 			GLint colorLoc = cubeShader->getUniformLocation("color");

@@ -4,9 +4,9 @@
 uniform mat4 viewProj;
 
 
-in vec3 rotationQuat;
-in vec3 cubePos;
-in vec3 color;
+uniform vec3 rotationQuat;
+uniform vec3 cubePos;
+uniform vec3 color;
 in vec3 position;
 out vec3 colorFrag;
 
