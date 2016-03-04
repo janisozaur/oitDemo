@@ -1010,6 +1010,8 @@ class OITDemo {
 	GLuint atomicCounterBuf;
 	GLuint accumulationBuf;
 
+	uint32_t oitBufferSize;
+
 	bool rotateCamera;
 	float cameraRotation;
 	uint64_t lastTime;
@@ -1138,6 +1140,7 @@ OITDemo::OITDemo()
 , counterImage(0)
 , atomicCounterBuf(0)
 , accumulationBuf(0)
+, oitBufferSize(0)
 , rotateCamera(false)
 , cameraRotation(0.0f)
 , lastTime(0)
@@ -1823,9 +1826,10 @@ void OITDemo::initRender() {
 	glNamedBufferData(atomicCounterBuf, 4, &zero, GL_DYNAMIC_COPY);
 	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, atomicCounterBuf);
 
+	oitBufferSize = windowWidth * windowHeight * 2;
 	glCreateBuffers(1, &accumulationBuf);
 	assert(accumulationBuf != 0);
-	glNamedBufferData(accumulationBuf, 128 * 1024 * 1024, NULL, GL_DYNAMIC_COPY);
+	glNamedBufferData(accumulationBuf, oitBufferSize * 3 * 4, NULL, GL_DYNAMIC_COPY);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, accumulationBuf);
 
 	createFramebuffers();
@@ -2285,10 +2289,6 @@ void OITDemo::render() {
 
 	setFullscreenVBO();
 
-	GLuint *temp = static_cast<GLuint *>(glMapBuffer(GL_ATOMIC_COUNTER_BUFFER, GL_READ_ONLY));
-	printf("atomic buffer contents: %u\n", *temp);
-	glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
 		glDisable(GL_DEPTH_TEST);
@@ -2340,6 +2340,17 @@ void OITDemo::render() {
 	}
 
 	SDL_GL_SwapWindow(window);
+
+	GLuint *temp = static_cast<GLuint *>(glMapBuffer(GL_ATOMIC_COUNTER_BUFFER, GL_READ_ONLY));
+	GLuint usedBuffer = *temp;
+	glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+	if (usedBuffer > oitBufferSize) {
+		// resize buffer
+		GLuint oldBufferSize = oitBufferSize;
+		oitBufferSize = usedBuffer + usedBuffer / 16;
+		printf("resizing buffer from %u to %u\n", oldBufferSize, oitBufferSize);
+		glNamedBufferData(accumulationBuf, oitBufferSize * 3 * 4, NULL, GL_STREAM_DRAW);
+	}
 }
 
 
