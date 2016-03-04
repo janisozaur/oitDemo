@@ -1680,6 +1680,22 @@ void OITDemo::initRender() {
 		glBindTextureUnit = glBindTextureUnitEmulated;
 	}
 
+	// check required extensions
+#define STRINGIFY(s) #s
+#define CHECK_EXTENSION(extname) \
+	if (!GLEW_##extname) { \
+		const char *errorMsg = "missing extension " "GL_" STRINGIFY(extname); \
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Missing OpenGL extension", errorMsg, window); \
+		throw std::runtime_error(errorMsg); \
+	}
+
+	CHECK_EXTENSION(ARB_explicit_attrib_location)
+	CHECK_EXTENSION(ARB_shader_atomic_counters)
+	CHECK_EXTENSION(ARB_shader_image_load_store)
+	CHECK_EXTENSION(ARB_shader_storage_buffer_object)
+	CHECK_EXTENSION(ARB_clear_buffer_object)
+	CHECK_EXTENSION(ARB_clear_texture)
+
 	if (glDebug) {
 		if (GLEW_KHR_debug) {
 			printf("KHR_debug found\n");
