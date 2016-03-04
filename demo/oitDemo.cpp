@@ -2100,118 +2100,118 @@ static void printHelp() {
 
 
 void OITDemo::mainLoopIteration() {
-		// TODO: timing
-		SDL_Event event;
-		memset(&event, 0, sizeof(SDL_Event));
-		while (SDL_PollEvent(&event)) {
-			switch (event.type) {
-			case SDL_QUIT:
+	// TODO: timing
+	SDL_Event event;
+	memset(&event, 0, sizeof(SDL_Event));
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+		case SDL_QUIT:
+			keepGoing = false;
+			break;
+
+		case SDL_KEYDOWN:
+			switch (event.key.keysym.scancode) {
+			case SDL_SCANCODE_ESCAPE:
 				keepGoing = false;
 				break;
 
-			case SDL_KEYDOWN:
-				switch (event.key.keysym.scancode) {
-				case SDL_SCANCODE_ESCAPE:
-					keepGoing = false;
-					break;
+			case SDL_SCANCODE_LSHIFT:
+				leftShift = true;
+				break;
 
-				case SDL_SCANCODE_LSHIFT:
-					leftShift = true;
-					break;
+			case SDL_SCANCODE_RSHIFT:
+				rightShift = true;
+				break;
 
-				case SDL_SCANCODE_RSHIFT:
-					rightShift = true;
-					break;
+			case SDL_SCANCODE_SPACE:
+				rotateCamera = !rotateCamera;
+				printf("camera rotation is %s\n", rotateCamera ? "on" : "off");
+				break;
 
-				case SDL_SCANCODE_SPACE:
-					rotateCamera = !rotateCamera;
-					printf("camera rotation is %s\n", rotateCamera ? "on" : "off");
-					break;
+			case SDL_SCANCODE_A:
+				antialiasing = !antialiasing;
+				printf("antialiasing set to %s\n", antialiasing ? "on" : "off");
+				break;
 
-				case SDL_SCANCODE_A:
-					antialiasing = !antialiasing;
-					printf("antialiasing set to %s\n", antialiasing ? "on" : "off");
-					break;
+			case SDL_SCANCODE_C:
+				if (rightShift || leftShift) {
+					colorMode = (colorMode + 1) % 2;
+					printf("color mode set to %s\n", colorMode ? "YCbCr" : "RGB");
+				}
+				colorCubes();
+				break;
 
-				case SDL_SCANCODE_C:
-					if (rightShift || leftShift) {
-						colorMode = (colorMode + 1) % 2;
-						printf("color mode set to %s\n", colorMode ? "YCbCr" : "RGB");
+			case SDL_SCANCODE_D:
+				if (antialiasing) {
+					if (leftShift || rightShift) {
+						debugMode = (debugMode + 3 - 1) % 3;
+					} else {
+						debugMode = (debugMode + 1) % 3;
 					}
-					colorCubes();
-					break;
-
-				case SDL_SCANCODE_D:
-					if (antialiasing) {
-						if (leftShift || rightShift) {
-							debugMode = (debugMode + 3 - 1) % 3;
-						} else {
-							debugMode = (debugMode + 1) % 3;
-						}
-						printf("Debug mode set to %s\n", smaaDebugModeStr(debugMode));
-					}
-					break;
-
-				case SDL_SCANCODE_H:
-					printHelp();
-					break;
-
-				case SDL_SCANCODE_Q:
-						if (leftShift || rightShift) {
-							smaaQuality = smaaQuality + maxSMAAQuality - 1;
-						} else {
-							smaaQuality = smaaQuality + 1;
-						}
-						smaaQuality = smaaQuality % maxSMAAQuality;
-						buildSMAAShaders();
-						printf("SMAA quality set to %s (%u)\n", smaaQualityLevels[smaaQuality], smaaQuality);
-
-					break;
-
-				case SDL_SCANCODE_V:
-					vsync = !vsync;
-					applyVSync();
-					break;
-
-				case SDL_SCANCODE_F:
-					fullscreen = !fullscreen;
-					applyFullscreen();
-					break;
-
-				default:
-					break;
+					printf("Debug mode set to %s\n", smaaDebugModeStr(debugMode));
 				}
 				break;
 
-			case SDL_KEYUP:
-				switch (event.key.keysym.scancode) {
-				case SDL_SCANCODE_LSHIFT:
-					leftShift = false;
-					break;
-
-				case SDL_SCANCODE_RSHIFT:
-					rightShift = false;
-					break;
-
-				default:
-					break;
-				}
+			case SDL_SCANCODE_H:
+				printHelp();
 				break;
 
-			case SDL_WINDOWEVENT:
-				switch (event.window.event) {
-				case SDL_WINDOWEVENT_SIZE_CHANGED:
-				case SDL_WINDOWEVENT_RESIZED:
-					resizeWidth = event.window.data1;
-					resizeHeight = event.window.data2;
-					break;
-				default:
-					break;
-				}
+			case SDL_SCANCODE_Q:
+					if (leftShift || rightShift) {
+						smaaQuality = smaaQuality + maxSMAAQuality - 1;
+					} else {
+						smaaQuality = smaaQuality + 1;
+					}
+					smaaQuality = smaaQuality % maxSMAAQuality;
+					buildSMAAShaders();
+					printf("SMAA quality set to %s (%u)\n", smaaQualityLevels[smaaQuality], smaaQuality);
+
+				break;
+
+			case SDL_SCANCODE_V:
+				vsync = !vsync;
+				applyVSync();
+				break;
+
+			case SDL_SCANCODE_F:
+				fullscreen = !fullscreen;
+				applyFullscreen();
+				break;
+
+			default:
+				break;
+			}
+			break;
+
+		case SDL_KEYUP:
+			switch (event.key.keysym.scancode) {
+			case SDL_SCANCODE_LSHIFT:
+				leftShift = false;
+				break;
+
+			case SDL_SCANCODE_RSHIFT:
+				rightShift = false;
+				break;
+
+			default:
+				break;
+			}
+			break;
+
+		case SDL_WINDOWEVENT:
+			switch (event.window.event) {
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+			case SDL_WINDOWEVENT_RESIZED:
+				resizeWidth = event.window.data1;
+				resizeHeight = event.window.data2;
+				break;
+			default:
+				break;
 			}
 		}
+	}
 
-		render();
+	render();
 }
 
 
@@ -2251,113 +2251,113 @@ void OITDemo::render() {
 	glClearTexImage(counterImage, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
 	glClearNamedBufferData(atomicCounterBuf, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
 
-		if (rotateCamera) {
-			rotationTime += elapsed;
+	if (rotateCamera) {
+		rotationTime += elapsed;
 
-			const uint64_t rotationPeriod = 30 * freq;
-			rotationTime = rotationTime % rotationPeriod;
-			cameraRotation = float(M_PI * 2.0f * rotationTime) / rotationPeriod;
+		const uint64_t rotationPeriod = 30 * freq;
+		rotationTime = rotationTime % rotationPeriod;
+		cameraRotation = float(M_PI * 2.0f * rotationTime) / rotationPeriod;
+	}
+	glm::mat4 view = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -25.0f)), cameraRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 proj = glm::perspective(float(65.0f * M_PI * 2.0f / 360.0f), float(windowWidth) / windowHeight, 0.1f, 100.0f);
+	glm::mat4 viewProj = proj * view;
+
+	if (useInstancing) {
+		cubeInstanceShader->bind();
+		GLint viewProjLoc = cubeInstanceShader->getUniformLocation("viewProj");
+		glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
+
+		GLint bufSizeLoc = cubeInstanceShader->getUniformLocation("bufSize");
+		glUniform1ui(bufSizeLoc, oitBufferSize);
+
+		glBindImageTexture(0, counterImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+
+		instances.clear();
+		instances.reserve(cubes.size());
+		for (const auto &cube : cubes) {
+			instances.emplace_back(cube.orient, cube.pos, cube.col);
 		}
-		glm::mat4 view = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -25.0f)), cameraRotation, glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 proj = glm::perspective(float(65.0f * M_PI * 2.0f / 360.0f), float(windowWidth) / windowHeight, 0.1f, 100.0f);
-		glm::mat4 viewProj = proj * view;
 
-		if (useInstancing) {
-			cubeInstanceShader->bind();
-			GLint viewProjLoc = cubeInstanceShader->getUniformLocation("viewProj");
-			glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
+		setCubeVBO();
+		glNamedBufferSubData(instanceVBO, 0, sizeof(InstanceData) * instances.size(), &instances[0]);
 
-			GLint bufSizeLoc = cubeInstanceShader->getUniformLocation("bufSize");
-			glUniform1ui(bufSizeLoc, oitBufferSize);
+		glDrawElementsInstanced(GL_TRIANGLES, 3 * 2 * 6, GL_UNSIGNED_INT, NULL, cubes.size());
+	} else {
+		cubeShader->bind();
+		GLint viewProjLoc = cubeShader->getUniformLocation("viewProj");
+		glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
 
-			glBindImageTexture(0, counterImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+		GLint bufSizeLoc = cubeShader->getUniformLocation("bufSize");
+		glUniform1ui(bufSizeLoc, oitBufferSize);
 
-			instances.clear();
-			instances.reserve(cubes.size());
-			for (const auto &cube : cubes) {
-				instances.emplace_back(cube.orient, cube.pos, cube.col);
-			}
+		glBindImageTexture(0, counterImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 
-			setCubeVBO();
-			glNamedBufferSubData(instanceVBO, 0, sizeof(InstanceData) * instances.size(), &instances[0]);
+		GLint cubePosLoc = cubeShader->getUniformLocation("cubePos");
+		GLint rotationQuatLoc = cubeShader->getUniformLocation("rotationQuat");
+		GLint colorLoc = cubeShader->getUniformLocation("color");
 
-			glDrawElementsInstanced(GL_TRIANGLES, 3 * 2 * 6, GL_UNSIGNED_INT, NULL, cubes.size());
-		} else {
-			cubeShader->bind();
-			GLint viewProjLoc = cubeShader->getUniformLocation("viewProj");
-			glUniformMatrix4fv(viewProjLoc, 1, GL_FALSE, glm::value_ptr(viewProj));
+		setCubeVBO();
 
-			GLint bufSizeLoc = cubeShader->getUniformLocation("bufSize");
-			glUniform1ui(bufSizeLoc, oitBufferSize);
-
-			glBindImageTexture(0, counterImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-
-			GLint cubePosLoc = cubeShader->getUniformLocation("cubePos");
-			GLint rotationQuatLoc = cubeShader->getUniformLocation("rotationQuat");
-			GLint colorLoc = cubeShader->getUniformLocation("color");
-
-			setCubeVBO();
-
-			for (const auto &cube : cubes) {
-				glUniform3fv(cubePosLoc, 1, glm::value_ptr(cube.pos));
-				glUniform3fv(rotationQuatLoc, 1, glm::value_ptr(cube.orient));
-				glm::vec3 colorF;
-				colorF.x = float(cube.col.r) / 255.0f;
-				colorF.y = float(cube.col.g) / 255.0f;
-				colorF.z = float(cube.col.b) / 255.0f;
-				glUniform3fv(colorLoc, 1, glm::value_ptr(colorF));
-				glDrawElements(GL_TRIANGLES, 3 * 2 * 6, GL_UNSIGNED_INT, NULL);
-			}
-
+		for (const auto &cube : cubes) {
+			glUniform3fv(cubePosLoc, 1, glm::value_ptr(cube.pos));
+			glUniform3fv(rotationQuatLoc, 1, glm::value_ptr(cube.orient));
+			glm::vec3 colorF;
+			colorF.x = float(cube.col.r) / 255.0f;
+			colorF.y = float(cube.col.g) / 255.0f;
+			colorF.z = float(cube.col.b) / 255.0f;
+			glUniform3fv(colorLoc, 1, glm::value_ptr(colorF));
+			glDrawElements(GL_TRIANGLES, 3 * 2 * 6, GL_UNSIGNED_INT, NULL);
 		}
+
+	}
 
 	setFullscreenVBO();
 
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-		glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_BLEND);
 
-		resolveShader->bind();
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+	resolveShader->bind();
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	if (antialiasing) {
-			smaaEdgeShader->bind();
+		smaaEdgeShader->bind();
 
-			if (debugMode == 1) {
-				// detect edges only
-				builtinFBO->bind();
-				glClear(GL_COLOR_BUFFER_BIT);
-
-				goto done;
-			} else {
-				edgesFBO->bind();
-				glClear(GL_COLOR_BUFFER_BIT);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-			}
-
-			smaaBlendWeightShader->bind();
-			if (debugMode == 2) {
-				// show blending weights
-				builtinFBO->bind();
-				glClear(GL_COLOR_BUFFER_BIT);
-
-				goto done;
-			} else {
-				blendFBO->bind();
-				glClear(GL_COLOR_BUFFER_BIT);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-			}
-
-			// full effect
-			smaaNeighborShader->bind();
+		if (debugMode == 1) {
+			// detect edges only
 			builtinFBO->bind();
 			glClear(GL_COLOR_BUFFER_BIT);
 
-		done:
+			goto done;
+		} else {
+			edgesFBO->bind();
+			glClear(GL_COLOR_BUFFER_BIT);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
+		}
+
+		smaaBlendWeightShader->bind();
+		if (debugMode == 2) {
+			// show blending weights
+			builtinFBO->bind();
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			goto done;
+		} else {
+			blendFBO->bind();
+			glClear(GL_COLOR_BUFFER_BIT);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+		}
+
+		// full effect
+		smaaNeighborShader->bind();
+		builtinFBO->bind();
+		glClear(GL_COLOR_BUFFER_BIT);
+
+	done:
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	} else {
 		renderFBO->blitTo(*builtinFBO);
