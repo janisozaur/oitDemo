@@ -8,7 +8,7 @@ Building
 
 Linux: Go to /binaries and type make. To change build settings copy example.mk to local.mk in the same directory. You only need to include changed lines in local.mk.
 
-Windows: There is a Visual Studio 2013 solution in /windows/SMAADemo.sln. You will need SDL2 headers and Windows libraries.
+Windows: There is a Visual Studio 2013 solution in /windows/OITDemo.sln. You will need SDL2 headers and Windows libraries.
 
 
 Usage
